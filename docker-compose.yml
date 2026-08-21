@@ -1,0 +1,125 @@
+services:
+
+  # ───────────────────────────────────────────────
+  # Infrastructure
+  # ───────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: recoverx-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-recoverx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-recoverx}
+      POSTGRES_DB: ${POSTGRES_DB:-recoverx}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recoverx"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: recoverx-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ───────────────────────────────────────────────
+  # Backend Services
+  # ───────────────────────────────────────────────
+
+  payment-service:
+    build: ./backend/services/payment-service
+    container_name: recoverx-payment-service
+    environment:
+      PORT: 4001
+      DATABASE_URL: postgres://${POSTGRES_USER:-recoverx}:${POSTGRES_PASSWORD:-recoverx}@postgres:5432/${POSTGRES_DB:-recoverx}
+      REDIS_URL: redis://redis:6379
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  recovery-service:
+    build: ./backend/services/recovery-service
+    container_name: recoverx-recovery-service
+    environment:
+      PORT: 4002
+      DATABASE_URL: postgres://${POSTGRES_USER:-recoverx}:${POSTGRES_PASSWORD:-recoverx}@postgres:5432/${POSTGRES_DB:-recoverx}
+      REDIS_URL: redis://redis:6379
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  audit-service:
+    build: ./backend/services/audit-service
+    container_name: recoverx-audit-service
+    environment:
+      PORT: 4003
+      DATABASE_URL: postgres://${POSTGRES_USER:-recoverx}:${POSTGRES_PASSWORD:-recoverx}@postgres:5432/${POSTGRES_DB:-recoverx}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  notification-service:
+    build: ./backend/services/notification-service
+    container_name: recoverx-notification-service
+    environment:
+      PORT: 4004
+      DATABASE_URL: postgres://${POSTGRES_USER:-recoverx}:${POSTGRES_PASSWORD:-recoverx}@postgres:5432/${POSTGRES_DB:-recoverx}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ───────────────────────────────────────────────
+  # Frontend
+  # ───────────────────────────────────────────────
+
+  frontend:
+    build: ./frontend
+    container_name: recoverx-frontend
+    depends_on:
+      - payment-service
+      - recovery-service
+      - audit-service
+      - notification-service
+
+  # ───────────────────────────────────────────────
+  # API Gateway (Nginx)
+  # ───────────────────────────────────────────────
+
+  gateway:
+    build: ./backend/gateway
+    container_name: recoverx-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - payment-service
+      - recovery-service
+      - audit-service
+      - notification-service
+      - frontend
+
+volumes:
+  pgdata:

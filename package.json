@@ -1,0 +1,14 @@
+{
+  "name": "recoverx",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RecoverX - Autonomous Checkout Revenue Recovery Agent Platform",
+  "scripts": {
+    "dev": "docker compose up --build",
+    "down": "docker compose down",
+    "test": "echo \"Running root tests...\""
+  },
+  "keywords": ["recoverx", "revenue-recovery", "ai-agent", "razorpay", "microservices"],
+  "author": "",
+  "license": "ISC"
+}
