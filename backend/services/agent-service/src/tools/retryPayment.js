@@ -1,6 +1,7 @@
 /**
  * Tool: retry_payment
  * Manages bounded payment retries with Redis counters (max 2 attempts per payment ID).
+ * Fails closed if counter infrastructure fails, guaranteeing retries can never run unbounded.
  */
 
 const { BOUNDS, isRetryWithinBounds } = require('../bounds/limits');
@@ -18,9 +19,21 @@ async function retryPayment(paymentId, method = 'CARD', options = {}) {
 
   const cacheKey = `payment:retry:${paymentId}`;
 
-  // 1. Check current retry counter in Redis
-  const rawCount = await redisClient.get(cacheKey);
-  const currentAttempts = rawCount ? parseInt(rawCount, 10) : 0;
+  // 1. Check current retry counter in Redis (Fail-closed on infrastructure failure)
+  let currentAttempts = 0;
+  try {
+    const rawCount = await redisClient.get(cacheKey);
+    currentAttempts = rawCount ? parseInt(rawCount, 10) : 0;
+  } catch (err) {
+    // Safety fail-closed: If we cannot verify the attempt count, reject to prevent unbounded retries
+    return {
+      success: false,
+      status: 'REJECTED',
+      failClosed: true,
+      paymentId,
+      error: 'Retry counter store unreachable. Payment retry rejected to prevent duplicate charges or unbounded attempts.',
+    };
+  }
 
   // 2. Reject outright if cap already reached (DO NOT increment)
   if (!isRetryWithinBounds(currentAttempts)) {
@@ -36,9 +49,20 @@ async function retryPayment(paymentId, method = 'CARD', options = {}) {
   }
 
   // 3. Increment counter only on an actual approved retry attempt
-  const newAttemptNumber = await redisClient.incr(cacheKey);
-  // Set 1-hour TTL on retry key
-  await redisClient.set(cacheKey, String(newAttemptNumber), 'EX', 3600);
+  let newAttemptNumber;
+  try {
+    newAttemptNumber = await redisClient.incr(cacheKey);
+    // Set 1-hour TTL on retry key
+    await redisClient.set(cacheKey, String(newAttemptNumber), 'EX', 3600);
+  } catch (err) {
+    return {
+      success: false,
+      status: 'REJECTED',
+      failClosed: true,
+      paymentId,
+      error: 'Could not record retry counter increment. Retry aborted for safety.',
+    };
+  }
 
   const baseUrl = options.baseUrl || DEFAULT_PAYMENT_URL;
 

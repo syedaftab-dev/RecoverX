@@ -2,10 +2,12 @@
  * Tool: create_order
  * Validates order ceiling (≤₹5,000 auto-approves, >₹5,000 requires human gating),
  * generates idempotency key, and calls payment-service.
+ * When threshold is crossed, automatically records a pending approval in the merchant queue.
  */
 
 const crypto = require('crypto');
 const { BOUNDS, isOrderValueWithinBounds } = require('../bounds/limits');
+const { escalateToHuman } = require('./escalateToHuman');
 
 const DEFAULT_PAYMENT_URL = process.env.PAYMENT_SERVICE_URL || 'http://payment-service:4003';
 
@@ -33,15 +35,29 @@ async function createOrder(cartItems, customerId = 'guest', options = {}) {
 
   // --- HARD NUMERIC SAFETY CHECK (₹5000 Limit) ---
   if (!isOrderValueWithinBounds(totalAmount)) {
+    // Automatically persist to merchant pending approval queue
+    const escalation = await escalateToHuman(
+      `High-value order requires merchant approval: ₹${totalAmount} (Threshold: ₹${BOUNDS.MAX_AUTO_ORDER_VALUE})`,
+      {
+        actionType: 'CREATE_ORDER',
+        totalAmount,
+        maxAllowedAutoValue: BOUNDS.MAX_AUTO_ORDER_VALUE,
+        cartItems,
+        customerId,
+      }
+    );
+
     return {
       success: true,
       status: 'REQUIRES_GATE',
       bounded: false,
+      gated: true,
+      approvalId: escalation.approvalId,
       totalAmount,
       maxAllowedAutoValue: BOUNDS.MAX_AUTO_ORDER_VALUE,
       cartItems,
       customerId,
-      reason: `Order value ₹${totalAmount} exceeds the automatic creation ceiling of ₹${BOUNDS.MAX_AUTO_ORDER_VALUE}. Gated for human merchant authorization.`,
+      reason: `Order value ₹${totalAmount} exceeds the automatic creation ceiling of ₹${BOUNDS.MAX_AUTO_ORDER_VALUE}. Gated and queued for merchant approval (Approval ID: ${escalation.approvalId}).`,
     };
   }
 
@@ -73,6 +89,7 @@ async function createOrder(cartItems, customerId = 'guest', options = {}) {
       success: true,
       status: 'APPROVED',
       bounded: true,
+      gated: false,
       idempotencyKey,
       totalAmount,
       order: data.order,
