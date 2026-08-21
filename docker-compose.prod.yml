@@ -15,6 +15,16 @@ services:
     image: redis:7-alpine
     restart: always
 
+  catalog-service:
+    build:
+      context: ./backend/services/catalog-service
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      PORT: 4005
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379
+
   payment-service:
     build:
       context: ./backend/services/payment-service

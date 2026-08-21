@@ -7,7 +7,7 @@ help:
 	@echo "  make down        - Stop all running containers"
 	@echo "  make logs        - Tail logs from all containers"
 	@echo "  make clean       - Remove volumes and orphan containers"
-	@echo "  make healthcheck - Check health of all running services"
+	@echo "  make healthcheck - Run full health & data verification suite"
 
 dev:
 	docker compose up --build
@@ -25,7 +25,4 @@ clean:
 	docker compose down -v --remove-orphans
 
 healthcheck:
-	@curl -s http://localhost:8080/api/payment/health || echo "Payment service unavailable"
-	@curl -s http://localhost:8080/api/recovery/health || echo "Recovery service unavailable"
-	@curl -s http://localhost:8080/api/audit/health || echo "Audit service unavailable"
-	@curl -s http://localhost:8080/api/notification/health || echo "Notification service unavailable"
+	node scripts/healthcheck.js

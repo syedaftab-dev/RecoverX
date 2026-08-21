@@ -14,6 +14,7 @@ recoverx/
 ├── backend/
 │   ├── gateway/                  # Nginx API Gateway & Reverse Proxy (:8080)
 │   ├── services/
+│   │   ├── catalog-service/      # Product truth, stock verification & Redis cache (:4005)
 │   │   ├── payment-service/      # Razorpay integration & order settlement (:4001)
 │   │   ├── recovery-service/     # AI recovery reasoning & bounded action engine (:4002)
 │   │   ├── audit-service/        # Event-driven immutable ledger (:4003)
@@ -52,7 +53,7 @@ make dev
 docker compose up --build
 ```
 
-### 3. Verify Health
+### 3. Verify Health & Catalog Endpoints
 ```bash
 make healthcheck
 # or
@@ -63,10 +64,13 @@ node scripts/healthcheck.js
 
 ## 🌐 Gateway Endpoints (Port 8080)
 
-| Service | Gateway Route | Container Port |
-|---|---|---|
-| **Payment Service** | `http://localhost:8080/api/payment/health` | `4001` |
-| **Recovery Service** | `http://localhost:8080/api/recovery/health` | `4002` |
-| **Audit Service** | `http://localhost:8080/api/audit/health` | `4003` |
-| **Notification Service** | `http://localhost:8080/api/notification/health` | `4004` |
-| **Frontend** | `http://localhost:8080/` | `5173` |
+| Service | Gateway Route | Container Port | Purpose |
+|---|---|---|---|
+| **Catalog Service** | `http://localhost:8080/api/catalog/products` | `4005` | List all products (with Redis caching) |
+| **Catalog Service** | `http://localhost:8080/api/catalog/products/:id` | `4005` | Get single product |
+| **Catalog Service** | `http://localhost:8080/api/catalog/stock/check` | `4005` | Real-time stock verification |
+| **Payment Service** | `http://localhost:8080/api/payment/health` | `4001` | Razorpay order & webhook processing |
+| **Recovery Service** | `http://localhost:8080/api/recovery/health` | `4002` | AI Recovery reasoning & safety bounding |
+| **Audit Service** | `http://localhost:8080/api/audit/health` | `4003` | Redis Streams ledger |
+| **Notification Service** | `http://localhost:8080/api/notification/health` | `4004` | Merchant/customer notifications |
+| **Frontend** | `http://localhost:8080/` | `5173` | Customer chat & merchant dashboard |

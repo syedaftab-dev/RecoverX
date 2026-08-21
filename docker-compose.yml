@@ -37,6 +37,19 @@ services:
   # Backend Services
   # ───────────────────────────────────────────────
 
+  catalog-service:
+    build: ./backend/services/catalog-service
+    container_name: recoverx-catalog-service
+    environment:
+      PORT: 4005
+      DATABASE_URL: postgres://${POSTGRES_USER:-recoverx}:${POSTGRES_PASSWORD:-recoverx}@postgres:5432/${POSTGRES_DB:-recoverx}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   payment-service:
     build: ./backend/services/payment-service
     container_name: recoverx-payment-service
@@ -100,6 +113,7 @@ services:
     build: ./frontend
     container_name: recoverx-frontend
     depends_on:
+      - catalog-service
       - payment-service
       - recovery-service
       - audit-service
@@ -115,6 +129,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
+      - catalog-service
       - payment-service
       - recovery-service
       - audit-service
