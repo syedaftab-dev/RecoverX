@@ -6,9 +6,17 @@
   "scripts": {
     "dev": "docker compose up --build",
     "down": "docker compose down",
-    "test": "echo \"Running root tests...\""
+    "test:unit": "node tests/unit/tools.test.js",
+    "test:integration": "node tests/integration/catalog.test.js",
+    "test": "node tests/unit/tools.test.js && node tests/integration/catalog.test.js"
   },
-  "keywords": ["recoverx", "revenue-recovery", "ai-agent", "razorpay", "microservices"],
+  "keywords": [
+    "recoverx",
+    "revenue-recovery",
+    "ai-agent",
+    "razorpay",
+    "microservices"
+  ],
   "author": "",
   "license": "ISC"
 }

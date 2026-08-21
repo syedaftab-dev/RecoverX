@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const toolRoutes = require('./routes/tool.routes');
 
 const app = express();
 const PORT = process.env.PORT || 4002;
@@ -15,6 +16,9 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Tool invocation routes
+app.use('/', toolRoutes);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🧠 agent-service running on port ${PORT}`);
