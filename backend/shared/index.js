@@ -1,10 +1,22 @@
-// Shared utilities and constants for RecoverX services
+// Shared constants, event names and validation definitions
 module.exports = {
   SERVICES: {
+    CATALOG: 'catalog-service',
+    AGENT: 'agent-service',
     PAYMENT: 'payment-service',
-    RECOVERY: 'recovery-service',
     AUDIT: 'audit-service',
-    NOTIFICATION: 'notification-service',
+  },
+  PORTS: {
+    CATALOG: 4001,
+    AGENT: 4002,
+    PAYMENT: 4003,
+    AUDIT: 4004,
+    GATEWAY: 8080,
+    FRONTEND: 5173,
+  },
+  SAFETY_BOUNDS: {
+    MAX_AUTO_DISCOUNT_PERCENT: 15,
+    MAX_AUTO_ORDER_VALUE: 5000,
   },
   EVENTS: {
     PAYMENT_FAILED: 'payment.failed',
@@ -13,6 +25,5 @@ module.exports = {
     RECOVERY_ACTION_EXECUTED: 'recovery.action_executed',
     RECOVERY_GATED_APPROVAL_NEEDED: 'recovery.gated_approval_needed',
     AUDIT_LOG_RECORDED: 'audit.log_recorded',
-    NOTIFICATION_SENT: 'notification.sent',
   },
 };

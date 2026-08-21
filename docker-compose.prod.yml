@@ -21,25 +21,13 @@ services:
       dockerfile: Dockerfile
     restart: always
     environment:
-      PORT: 4005
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      REDIS_URL: redis://redis:6379
-
-  payment-service:
-    build:
-      context: ./backend/services/payment-service
-      dockerfile: Dockerfile
-    restart: always
-    environment:
       PORT: 4001
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379
-      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
-      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
 
-  recovery-service:
+  agent-service:
     build:
-      context: ./backend/services/recovery-service
+      context: ./backend/services/agent-service
       dockerfile: Dockerfile
     restart: always
     environment:
@@ -48,19 +36,21 @@ services:
       REDIS_URL: redis://redis:6379
       OPENAI_API_KEY: ${OPENAI_API_KEY}
 
-  audit-service:
+  payment-service:
     build:
-      context: ./backend/services/audit-service
+      context: ./backend/services/payment-service
       dockerfile: Dockerfile
     restart: always
     environment:
       PORT: 4003
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
 
-  notification-service:
+  audit-service:
     build:
-      context: ./backend/services/notification-service
+      context: ./backend/services/audit-service
       dockerfile: Dockerfile
     restart: always
     environment:

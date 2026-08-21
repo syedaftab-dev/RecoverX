@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 4004;
+const PORT = process.env.PORT || 4002;
 
 app.use(cors());
 app.use(express.json());
@@ -11,11 +11,11 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: 'notification-service',
+    service: 'agent-service',
     timestamp: new Date().toISOString(),
   });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`notification-service running on port ${PORT}`);
+  console.log(`🧠 agent-service running on port ${PORT}`);
 });

@@ -3,15 +3,14 @@
  */
 const endpoints = [
   { name: 'catalog-service', url: 'http://localhost:8080/api/catalog/health' },
+  { name: 'agent-service', url: 'http://localhost:8080/api/agent/health' },
   { name: 'payment-service', url: 'http://localhost:8080/api/payment/health' },
-  { name: 'recovery-service', url: 'http://localhost:8080/api/recovery/health' },
   { name: 'audit-service', url: 'http://localhost:8080/api/audit/health' },
-  { name: 'notification-service', url: 'http://localhost:8080/api/notification/health' },
 ];
 
 async function runVerification() {
   console.log('═══════════════════════════════════════════════════════════════');
-  console.log('🔍 1. VERIFYING ALL MICROSERVICE HEALTH ENDPOINTS VIA GATEWAY');
+  console.log('🔍 1. VERIFYING ALL 4 CANONICAL MICROSERVICES VIA GATEWAY (:8080)');
   console.log('═══════════════════════════════════════════════════════════════\n');
 
   for (const ep of endpoints) {
@@ -31,9 +30,9 @@ async function runVerification() {
   let sampleProduct = null;
   let lowStockProduct = null;
 
-  // 1. Test GET /products (First hit -> Database query)
+  // 1. Test GET /products
   try {
-    console.log('👉 Testing GET /api/catalog/products (Request 1 - Expecting DB query)...');
+    console.log('👉 Testing GET /api/catalog/products (Request 1)...');
     const res1 = await fetch('http://localhost:8080/api/catalog/products');
     const data1 = await res1.json();
     console.log(`   Status: ${res1.status}, Source: ${data1.source}, Total Products: ${data1.count}`);
@@ -48,9 +47,9 @@ async function runVerification() {
     console.error('❌ GET /api/catalog/products failed:', err.message);
   }
 
-  // 2. Test GET /products (Second hit -> Redis Cache Hit)
+  // 2. Test GET /products (Cache Hit)
   try {
-    console.log('\n👉 Testing GET /api/catalog/products (Request 2 - Expecting Redis Cache hit)...');
+    console.log('\n👉 Testing GET /api/catalog/products (Request 2 - Cache Check)...');
     const res2 = await fetch('http://localhost:8080/api/catalog/products');
     const data2 = await res2.json();
     console.log(`   Status: ${res2.status}, Source: ${data2.source}, Cache-Header: ${res2.headers.get('x-cache-source')}`);
@@ -89,7 +88,7 @@ async function runVerification() {
     }
   }
 
-  // 5. Test POST /stock/check (Excess quantity / stock-out scenario)
+  // 5. Test POST /stock/check (Stock-out scenario)
   if (lowStockProduct) {
     try {
       console.log(`\n👉 Testing POST /api/catalog/stock/check (Stock-out test: qty=999 on low-stock item)...`);

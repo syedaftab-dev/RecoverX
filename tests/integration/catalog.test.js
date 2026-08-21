@@ -1,12 +1,12 @@
 /**
- * Comprehensive Integration & Performance Test Suite for RecoverX Day 2
+ * Comprehensive Integration & Performance Test Suite for RecoverX (4 Canonical Services)
  */
 const assert = require('assert');
 
 const BASE_URL = 'http://localhost:8080';
 
 async function runTests() {
-  console.log('🧪 Starting RecoverX Day 2 Test Suite...\n');
+  console.log('🧪 Starting RecoverX Canonical Test Suite...\n');
   let passed = 0;
   let failed = 0;
 
@@ -21,8 +21,8 @@ async function runTests() {
   }
 
   // --- 1. Health Checks ---
-  console.log('--- 1. Testing Gateway & Health Endpoints ---');
-  const services = ['catalog', 'payment', 'recovery', 'audit', 'notification'];
+  console.log('--- 1. Testing Gateway & Canonical Health Endpoints ---');
+  const services = ['catalog', 'agent', 'payment', 'audit'];
   for (const s of services) {
     try {
       const res = await fetch(`${BASE_URL}/api/${s}/health`);

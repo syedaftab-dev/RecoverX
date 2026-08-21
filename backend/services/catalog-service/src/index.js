@@ -4,7 +4,7 @@ const { initDB } = require('./db');
 const catalogRoutes = require('./routes/catalog.routes');
 
 const app = express();
-const PORT = process.env.PORT || 4005;
+const PORT = process.env.PORT || 4001;
 
 app.use(cors());
 app.use(express.json());

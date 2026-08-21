@@ -1,5 +1,5 @@
 {
-  "name": "notification-service",
+  "name": "agent-service",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,9 @@
     "dev": "node --watch src/index.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.21.0",
-    "cors": "^2.8.5"
+    "ioredis": "^5.4.1"
   }
 }
