@@ -63,7 +63,7 @@ async function createOrder(cartItems, customerId = 'guest', options = {}) {
 
   // Generate UUID / unique Idempotency Key
   const idempotencyKey = options.idempotencyKey || `idemp_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`;
-  const baseUrl = options.baseUrl || DEFAULT_PAYMENT_URL;
+  const baseUrl = process.env.PAYMENT_SERVICE_URL || options.baseUrl || DEFAULT_PAYMENT_URL;
 
   try {
     const res = await fetch(`${baseUrl}/orders`, {

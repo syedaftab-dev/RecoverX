@@ -7,8 +7,10 @@
     "dev": "docker compose up --build",
     "down": "docker compose down",
     "test:unit": "node tests/unit/tools.test.js",
-    "test:integration": "node tests/integration/catalog.test.js",
-    "test": "node tests/unit/tools.test.js && node tests/integration/catalog.test.js"
+    "test:catalog": "node tests/integration/catalog.test.js",
+    "test:agent": "node tests/integration/agent.test.js",
+    "test:recovery": "node tests/integration/recovery.test.js",
+    "test": "node tests/unit/tools.test.js && node tests/integration/catalog.test.js && node tests/integration/agent.test.js && node tests/integration/recovery.test.js"
   },
   "keywords": [
     "recoverx",
